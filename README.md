@@ -8,6 +8,7 @@ A Java + MySQL project for managing hospital operations such as patient registra
 - Add, update, and delete patients and doctors
 - Check drug stock
 - Generate patient bills
+- Generate patient reports
 - Admission/discharge management
 
 ## Requirements
