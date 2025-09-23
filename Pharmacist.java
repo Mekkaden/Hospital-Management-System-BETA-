@@ -8,11 +8,11 @@ public class Pharmacist {
     public Pharmacist() {
         sc = new Scanner(System.in);
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); // JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver"); 
             conn = DriverManager.getConnection(
     "jdbc:mysql://localhost:3306/hospital?useSSL=false&serverTimezone=UTC",
-    "root",      // MySQL username
-    "1234"       // MySQL root password
+    "root",      
+    "1234"      
 );
         } catch (ClassNotFoundException e) {
             System.out.println("JDBC Driver not found!");
@@ -48,7 +48,7 @@ public class Pharmacist {
         System.out.println("3. Exit");
         System.out.print("Enter choice: ");
         int choice = sc.nextInt();
-        sc.nextLine(); // consume newline
+        sc.nextLine(); 
         switch (choice) {
             case 1: viewPrescriptions(); break;
             case 2: viewStock(); break;
@@ -97,3 +97,4 @@ public class Pharmacist {
         }
     }
 }
+
