@@ -229,9 +229,6 @@ class aPharmacy{
         }
     }
 
-    public void billing(int p_ID){
-        
-    }
 }
 
 public class Administrator extends Admin{
@@ -247,3 +244,4 @@ public class Administrator extends Admin{
         System.out.println("System ready. Connect Swing UI to these objects.");
     }
 }
+
