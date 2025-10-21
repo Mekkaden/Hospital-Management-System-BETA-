@@ -3,6 +3,7 @@ import java.sql.*;
 import java.util.*;
 import javax.swing.table.DefaultTableModel;
 
+
 public class Receptionistn { 
     private Connection conn;
 
@@ -14,7 +15,7 @@ public class Receptionistn {
         try {
             conn = Dbconnection.getConnection(); 
             if (conn == null) {
-                System.out.println("❌ Database connection failed!");
+                System.out.println(" Database connection failed!");
             }
         } catch (Exception e) {
             System.out.println("DB Connection Error: " + e.getMessage());
@@ -42,7 +43,7 @@ public class Receptionistn {
                 String existingPhone = rs.getString("PHONE_NO");
 
                 if (existingPhone.equals(phone)) {
-                    System.out.println("⚠ Patient already registered with this phone number! Name: " + rs.getString("P_NAME"));
+                    System.out.println(" Patient already registered with this phone number! Name: " + rs.getString("P_NAME"));
                     return;
                 }
             }
@@ -57,11 +58,11 @@ public class Receptionistn {
             pst.setBoolean(6, false);
             pst.executeUpdate();
 
-            System.out.println("✅ Patient Registered Successfully!");
+            System.out.println(" Patient Registered Successfully!");
         } catch (IllegalArgumentException ie) {
             System.out.println(" Date format must be YYYY-MM-DD");
         } catch (Exception e) {
-            System.out.println("❌ Error registering patient: " + e.getMessage());
+            System.out.println(" Error registering patient: " + e.getMessage());
         }
     }
 
@@ -82,11 +83,11 @@ public class Receptionistn {
             pst.setString(7, "BOOKED");
             pst.executeUpdate();
 
-            System.out.println("✅ Appointment Booked!");
+            System.out.println(" Appointment Booked!");
         } catch (IllegalArgumentException ie) {
-            System.out.println("❌ Date must be YYYY-MM-DD and time HH:MM:SS");
+            System.out.println(" Date must be YYYY-MM-DD and time HH:MM:SS");
         } catch (Exception e) {
-            System.out.println("❌ Error booking appointment: " + e.getMessage());
+            System.out.println(" Error booking appointment: " + e.getMessage());
         }
     }
 
@@ -114,7 +115,7 @@ public class Receptionistn {
                 data.add(row);
             }
         } catch (Exception e) {
-            System.out.println("❌ Error fetching appointments: " + e.getMessage());
+            System.out.println(" Error fetching appointments: " + e.getMessage());
         }
         return new DefaultTableModel(data, columns) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -132,10 +133,10 @@ public class Receptionistn {
             int u = pst.executeUpdate();
             return u > 0;
         } catch (IllegalArgumentException ie) {
-            System.out.println("❌ Date must be YYYY-MM-DD and time HH:MM:SS");
+            System.out.println("Date must be YYYY-MM-DD and time HH:MM:SS");
             return false;
         } catch (Exception e) {
-            System.out.println("❌ Error updating appointment: " + e.getMessage());
+            System.out.println(" Error updating appointment: " + e.getMessage());
             return false;
         }
     }
@@ -148,7 +149,7 @@ public class Receptionistn {
             int d = pst.executeUpdate();
             return d > 0;
         } catch (Exception e) {
-            System.out.println("❌ Error deleting appointment: " + e.getMessage());
+            System.out.println(" Error deleting appointment: " + e.getMessage());
             return false;
         }
     }
@@ -174,7 +175,7 @@ public class Receptionistn {
                 data.add(row);
             }
         } catch (Exception e) {
-            System.out.println("❌ Error fetching doctor schedule: " + e.getMessage());
+            System.out.println(" Error fetching doctor schedule: " + e.getMessage());
         }
         return new DefaultTableModel(data, columns) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -205,10 +206,10 @@ public class Receptionistn {
             pst.setString(4, "WAITING");
             pst.executeUpdate();
 
-            System.out.println("🎫 Token generated: " + nextToken + " for " + patientName);
+            System.out.println(" Token generated: " + nextToken + " for " + patientName);
             return nextToken;
         } catch (Exception e) {
-            System.out.println("❌ Error generating token: " + e.getMessage());
+            System.out.println(" Error generating token: " + e.getMessage());
             return -1;
         }
     }
@@ -226,14 +227,14 @@ public class Receptionistn {
                 pu.setInt(1, qid);
                 int u = pu.executeUpdate();
                 if (u > 0) {
-                    System.out.println("➡️ Patient moved to IN_PROGRESS (QUEUE_ID=" + qid + ")");
+                    System.out.println("Patient moved to IN_PROGRESS (QUEUE_ID=" + qid + ")");
                     return true;
                 }
             } else {
-                System.out.println("⚠ No patients in waiting queue.");
+                System.out.println(" No patients in waiting queue.");
             }
         } catch (Exception e) {
-            System.out.println("❌ Error transferring to doctor queue: " + e.getMessage());
+            System.out.println(" Error transferring to doctor queue: " + e.getMessage());
         }
         return false;
     }

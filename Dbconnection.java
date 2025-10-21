@@ -15,12 +15,12 @@ public class Dbconnection {
         if (conn == null) {
             try {
                 conn = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("Connection successfull!");
+                System.out.println("Connection successful!");
             } catch (SQLException e) {
-                System.out.println(" Connection Error: " + e.getMessage());
+                System.out.println("Connection Error: " + e.getMessage());
             }
         }
         return conn;
     }
-
 }
+
