@@ -2,99 +2,209 @@ import java.sql.*;
 import java.util.Scanner;
 
 public class Pharmacist {
+
+    // Database connection details
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/hospital_ms";
+    private static final String DB_USER = "root"; // change if your MySQL user is different
+    private static final String DB_PASSWORD = "1234"; // <- change this
+
     private Connection conn;
     private Scanner sc;
 
     public Pharmacist() {
         sc = new Scanner(System.in);
+        connectToDatabase();
+    }
+
+    private void connectToDatabase() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver"); 
-            conn = DriverManager.getConnection(
-    "jdbc:mysql://localhost:3306/hospital?useSSL=false&serverTimezone=UTC",
-    "root",      
-    "1234"      
-);
-        } catch (ClassNotFoundException e) {
-            System.out.println("JDBC Driver not found!");
+            conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
+            System.out.println("✅ Connected to hospital_ms database successfully!");
         } catch (SQLException e) {
-            System.out.println("Database connection failed!");
-            e.printStackTrace();
+            System.out.println("❌ Database connection failed: " + e.getMessage());
+            System.exit(0);
         }
     }
 
-    public boolean login() {
-        System.out.print("Enter username: ");
-        String user = sc.nextLine();
-        System.out.print("Enter password: ");
-        String pass = sc.nextLine();
+    // --------------------- PHARMACY OPERATIONS ---------------------
 
-        try {
-            String query = "SELECT * FROM pharmacist WHERE username=? AND password=?";
-            PreparedStatement pst = conn.prepareStatement(query);
-            pst.setString(1, user);
-            pst.setString(2, pass);
-            ResultSet rs = pst.executeQuery();
-            return rs.next();
+    private void viewAllDrugs() {
+        System.out.println("\n📦 Available Drugs in Pharmacy:");
+        String query = "SELECT * FROM PHARMACY";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                System.out.println("Drug ID: " + rs.getInt("DRUG_ID")
+                        + " | Name: " + rs.getString("DRUG_NAME")
+                        + " | Price: " + rs.getFloat("PRICE")
+                        + " | Stock: " + rs.getInt("STOCK_LEVEL")
+                        + " | Available: " + rs.getBoolean("STOCK_AVAILABLE"));
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("❌ Error viewing drugs: " + e.getMessage());
         }
-        return false;
     }
+
+    private void addNewDrug() {
+        System.out.print("\nEnter Drug Name: ");
+        String name = sc.nextLine();
+        System.out.print("Enter Price: ");
+        float price = sc.nextFloat();
+        sc.nextLine();
+        System.out.print("Enter Concentration: ");
+        String conc = sc.nextLine();
+        System.out.print("Enter Supplier: ");
+        String supplier = sc.nextLine();
+        System.out.print("Enter MFG Date (YYYY-MM-DD): ");
+        String mfg = sc.nextLine();
+        System.out.print("Enter Expiry Date (YYYY-MM-DD): ");
+        String exp = sc.nextLine();
+        System.out.print("Enter Stock Level: ");
+        int stock = sc.nextInt();
+        sc.nextLine();
+
+        String query = "INSERT INTO PHARMACY (DRUG_NAME, PRICE, CONCENTRATION, SUPPLIER, MFG_DATE, EXPIRY_DATE, STOCK_LEVEL) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setString(1, name);
+            ps.setFloat(2, price);
+            ps.setString(3, conc);
+            ps.setString(4, supplier);
+            ps.setDate(5, Date.valueOf(mfg));
+            ps.setDate(6, Date.valueOf(exp));
+            ps.setInt(7, stock);
+            ps.executeUpdate();
+            System.out.println("✅ Drug added successfully!");
+        } catch (SQLException e) {
+            System.out.println("❌ Error adding drug: " + e.getMessage());
+        }
+    }
+
+    private void updateDrugStock() {
+        System.out.print("\nEnter Drug ID to update: ");
+        int id = sc.nextInt();
+        System.out.print("Enter new stock level: ");
+        int stock = sc.nextInt();
+
+        String query = "UPDATE PHARMACY SET STOCK_LEVEL = ?, STOCK_AVAILABLE = ? WHERE DRUG_ID = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, stock);
+            ps.setBoolean(2, stock > 0);
+            ps.setInt(3, id);
+            int rows = ps.executeUpdate();
+            if (rows > 0)
+                System.out.println("✅ Stock updated successfully!");
+            else
+                System.out.println("⚠️ Drug ID not found.");
+        } catch (SQLException e) {
+            System.out.println("❌ Error updating stock: " + e.getMessage());
+        }
+    }
+
+    private void deleteDrug() {
+        System.out.print("\nEnter Drug ID to delete: ");
+        int id = sc.nextInt();
+
+        String query = "DELETE FROM PHARMACY WHERE DRUG_ID = ?";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, id);
+            int rows = ps.executeUpdate();
+            if (rows > 0)
+                System.out.println("✅ Drug deleted successfully!");
+            else
+                System.out.println("⚠️ Drug ID not found.");
+        } catch (SQLException e) {
+            System.out.println("❌ Error deleting drug: " + e.getMessage());
+        }
+    }
+
+    // --------------------- PRESCRIPTION / DISPENSE ---------------------
+
+    private void viewPendingPrescriptions() {
+        System.out.println("\n💊 Pending Prescriptions:");
+        String query = "SELECT P.PRESCRIPTION_ID, P.P_ID, PAT.P_NAME, D.DRUG_NAME, P.DOSAGE, P.DURATION_DAYS " +
+                "FROM PRESCRIPTION P " +
+                "JOIN PHARMACY D ON P.DRUG_ID = D.DRUG_ID " +
+                "JOIN PATIENT PAT ON P.P_ID = PAT.P_ID " +
+                "WHERE P.PRESCRIPTION_ID NOT IN (SELECT PRESCRIPTION_ID FROM DISPENSED_MEDICINE WHERE DISPENSE_STATUS = 'DISPENSED')";
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                System.out.println("Prescription ID: " + rs.getInt("PRESCRIPTION_ID") +
+                        " | Patient: " + rs.getString("P_NAME") +
+                        " | Drug: " + rs.getString("DRUG_NAME") +
+                        " | Dosage: " + rs.getString("DOSAGE") +
+                        " | Duration: " + rs.getInt("DURATION_DAYS") + " days");
+            }
+        } catch (SQLException e) {
+            System.out.println("❌ Error viewing prescriptions: " + e.getMessage());
+        }
+    }
+
+    private void markAsDispensed() {
+        System.out.print("\nEnter Prescription ID to mark as dispensed: ");
+        int prescId = sc.nextInt();
+        System.out.print("Enter Drug ID: ");
+        int drugId = sc.nextInt();
+        System.out.print("Enter Patient ID: ");
+        int pId = sc.nextInt();
+        System.out.print("Enter Quantity: ");
+        int qty = sc.nextInt();
+        System.out.print("Enter Price per unit: ");
+        float price = sc.nextFloat();
+
+        float total = qty * price;
+        String query = "INSERT INTO DISPENSED_MEDICINE (PRESCRIPTION_ID, DRUG_ID, P_ID, QUANTITY, PRICE, TOTAL_PRICE, DISPENSE_STATUS) VALUES (?, ?, ?, ?, ?, ?, 'DISPENSED')";
+        try (PreparedStatement ps = conn.prepareStatement(query)) {
+            ps.setInt(1, prescId);
+            ps.setInt(2, drugId);
+            ps.setInt(3, pId);
+            ps.setInt(4, qty);
+            ps.setFloat(5, price);
+            ps.setFloat(6, total);
+            ps.executeUpdate();
+            System.out.println("✅ Prescription marked as dispensed!");
+        } catch (SQLException e) {
+            System.out.println("❌ Error dispensing medicine: " + e.getMessage());
+        }
+    }
+
+    // --------------------- MENU ---------------------
 
     public void menu() {
-        System.out.println("Welcome to Pharmacist Menu!");
-        System.out.println("1. View Prescriptions");
-        System.out.println("2. View Medicine Stock");
-        System.out.println("3. Exit");
-        System.out.print("Enter choice: ");
-        int choice = sc.nextInt();
-        sc.nextLine(); 
-        switch (choice) {
-            case 1: viewPrescriptions(); break;
-            case 2: viewStock(); break;
-            case 3: System.exit(0);
-            default: System.out.println("Invalid choice!"); menu();
-        }
-    }
+        while (true) {
+            System.out.println("\n===== PHARMACIST MENU =====");
+            System.out.println("1. View All Drugs");
+            System.out.println("2. Add New Drug");
+            System.out.println("3. Update Drug Stock");
+            System.out.println("4. Delete Drug");
+            System.out.println("5. View Pending Prescriptions");
+            System.out.println("6. Mark Prescription as Dispensed");
+            System.out.println("7. Exit");
+            System.out.print("Choose option: ");
 
-    public void viewPrescriptions() {
-        try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM prescription");
-            System.out.println("ID | Patient | Medicine | Quantity");
-            while(rs.next()) {
-                System.out.println(rs.getInt("id") + " | " +
-                                   rs.getString("patient_name") + " | " +
-                                   rs.getString("medicine") + " | " +
-                                   rs.getInt("quantity"));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
+            int choice = sc.nextInt();
+            sc.nextLine();
 
-    public void viewStock() {
-        try {
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM medicine_stock");
-            System.out.println("ID | Medicine | Quantity");
-            while(rs.next()) {
-                System.out.println(rs.getInt("id") + " | " +
-                                   rs.getString("medicine_name") + " | " +
-                                   rs.getInt("quantity"));
+            switch (choice) {
+                case 1 -> viewAllDrugs();
+                case 2 -> addNewDrug();
+                case 3 -> updateDrugStock();
+                case 4 -> deleteDrug();
+                case 5 -> viewPendingPrescriptions();
+                case 6 -> markAsDispensed();
+                case 7 -> {
+                    System.out.println("👋 Logging out...");
+                    return;
+                }
+                default -> System.out.println("⚠️ Invalid choice. Try again.");
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
 
     public static void main(String[] args) {
-        Pharmacist p = new Pharmacist();
-        if(p.login()) {
-            p.menu();
-        } else {
-            System.out.println("Login failed!");
-        }
+        Pharmacist pharmacist = new Pharmacist();
+        pharmacist.menu();
     }
 }
-
