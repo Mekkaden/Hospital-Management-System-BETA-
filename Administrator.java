@@ -5,9 +5,9 @@ class Admin{
     public void login(String username,String password){
         try{
 
-            if(username==DBMS.USER && password==DBMS.PASSWORD){
+            if(username==Dbconnection.USER && password==Dbconnection.PASSWORD){
             String query = "SELECT * FROM users WHERE username = ? AND password = ?";
-            try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+            try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
                 pstmt.setString(1,username);
                 pstmt.setString(2,password);
                 pstmt.executeQuery();
@@ -27,7 +27,7 @@ class aDoctor{
 
     public void addDoctor(int doc_ID,String doc_name,String qualification,String specialization,String phone_no,boolean on_leave){
         String query="Insert into doctor(doc_ID,doc_name,qualification,specialization,phone_no,on_leave) values (?,?,?,?,?,?)";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt = conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt = conn.prepareStatement(query)){
             pstmt.setInt(1,doc_ID);
             pstmt.setString(2,doc_name);
             pstmt.setString(3,qualification);
@@ -44,7 +44,7 @@ class aDoctor{
     }
     public void updateDoctor(int doc_ID,String doc_name,String qualification,String specialization,String phone_no,boolean on_leave){
         String query="UPDATE doctor SET doc_name=?, qualification=?, specialization=?, phone_no=?, on_leave=? where doc_ID=?";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,doc_ID);
             pstmt.setString(2,doc_name);
             pstmt.setString(3,qualification);
@@ -63,7 +63,7 @@ class aDoctor{
     }
     public void removeDoctor(int doc_ID){
         String query="DELETE from doctor where doc_ID=?";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,doc_ID);
             int rows=pstmt.executeUpdate();
             if(rows>0)
@@ -78,7 +78,7 @@ class aDoctor{
     public void checkLeave(int doc_ID,String doc_name){
         //To check whether a doctor is on leave
         String query="SELECT doc_ID,doc_name,on_leave from doctor where doc_ID=? AND doc_name=?";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,doc_ID);
             pstmt.setString(2,doc_name);
             ResultSet rs=pstmt.executeQuery();
@@ -107,7 +107,7 @@ class aPatient{
 
     public void addPatient(int p_ID,String p_name,String gender,LocalDate DOB,String phone_no,String diagnosis,String history,boolean admitted){
         String query="INSERT into patient(p_ID,p_name,gender,DOB,phone_no,diagnosis,history,admitted) values(?,?,?,?,?,?,?,?)";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,p_ID);
             pstmt.setString(2,p_name);
             pstmt.setString(3,gender);
@@ -128,7 +128,7 @@ class aPatient{
 
     public void updatePatient(int  p_ID,String p_name,String gender,LocalDate DOB,String phone_no,String diagnosis,String history,boolean admitted){
         String query="UPDATE patient SET p_name=?,gender=?,DOB=?,phone_no=?,diagnosis=?,history=?,admitted=? where p_ID=?";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setString(1,p_name);
             pstmt.setString(2,gender);
             pstmt.setDate(3,java.sql.Date.valueOf(DOB));
@@ -156,7 +156,7 @@ class aPatient{
     }
     public void removePatient(int p_ID){
         String query="DELETE from patient where p_ID=?";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,p_ID);
             int rows=pstmt.executeUpdate();
             if(rows>0){
@@ -184,7 +184,7 @@ class aPharmacy{
     public void addDrug(int drug_ID,String drug_name,double price,String concentration,String supplier,
     LocalDate mfg_date,LocalDate expiry_date,int stock_level,boolean stock_available){
         String query="INSERT into pharmacy(drug_ID,drug_name,price,concentration,supplier,mfg_date,expiry_date,stock_level,stock_available) values(?,?,?,?,?,?,?,?,?)";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,drug_ID);
             pstmt.setString(2,drug_name);
             pstmt.setDouble(3,price);
@@ -207,7 +207,7 @@ class aPharmacy{
 
     public void checkStock(int drug_ID){
         String query="Select drug_ID,drug_name,stock_available,stock_level where drug_ID=?";
-        try(Connection conn=DBMS.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
+        try(Connection conn=Dbconnection.getConnection();PreparedStatement pstmt=conn.prepareStatement(query)){
             pstmt.setInt(1,drug_ID);
             ResultSet rs=pstmt.executeQuery();
             if(rs.next()){
@@ -229,9 +229,6 @@ class aPharmacy{
         }
     }
 
-    public void billing(int p_ID){
-        
-    }
 }
 
 public class Administrator extends Admin{
